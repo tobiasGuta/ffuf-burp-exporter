@@ -8,7 +8,7 @@ This repo contains a single-file Jython Burp extension that preserves headers, m
 ## Quick install (for contributors / users)
 1. Download the latest **Jython standalone** jar (for Burp Python support).  
 2. Open Burp → **Extender** → **Extensions** → **Add**.  
-   - Choose `Python` (Jython) as the extension type and load `ffuf_exporter_all.py`.  
+   - Choose `Python` (Jython) as the extension type and load `ffuf_export_all.py`.  
 3. Right-click a request in Proxy / HTTP history / Repeater → **Send as ffuf command**.  
 4. Paste in terminal, change `-w /path/to/wordlist.txt` to your wordlist and add `-p http://127.0.0.1:8080` if you want ffuf proxied through Burp.
 
