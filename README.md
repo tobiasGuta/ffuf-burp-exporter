@@ -16,3 +16,19 @@ This repo contains a single-file Jython Burp extension that preserves headers, m
 
 https://github.com/user-attachments/assets/c78dcac0-1b2e-4a0c-8998-e640f87038b5
 
+# Support
+If my tool helped you land a bug bounty, consider buying me a coffee ☕️ as a small thank-you! Everything I build is free, but a little support helps me keep improving and creating more cool stuff ❤️
+---
+
+<div align="center">
+  <h3>☕ Support My Journey</h3>
+</div>
+
+
+<div align="center">
+  <a href="https://www.buymeacoffee.com/tobiasguta">
+    <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" width="200" />
+  </a>
+</div>
+
+---
