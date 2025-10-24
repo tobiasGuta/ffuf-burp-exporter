@@ -31,13 +31,14 @@ class BurpExtender(IBurpExtender, IContextMenuFactory):
             headers = analyzed.getHeaders()
             body_offset = analyzed.getBodyOffset()
             request_bytes = request
-            # get body as string (if any)
+            # get whole request as string then slice for body (works with Burp Java byte[] via helpers)
+            try:
+                request_str = self._helpers.bytesToString(request_bytes)
+            except:
+                # fallback to str() if helpers not available for some reason
+                request_str = str(request_bytes)
             if body_offset < len(request_bytes):
-                body_bytes = request_bytes[body_offset:]
-                try:
-                    body = body_bytes.tostring()
-                except:
-                    body = str(body_bytes)
+                body = request_str[body_offset:]
             else:
                 body = ""
 
@@ -50,18 +51,46 @@ class BurpExtender(IBurpExtender, IContextMenuFactory):
 
             # parse request-line to get path portion
             req_line = headers[0]
-            m = re.match(r'(\w+)\s+(\S+)\s+HTTP/\d\.\d', req_line)
-            if not m:
-                JOptionPane.showMessageDialog(None, "Couldn't parse request line.")
+            # ensure we have a Python str (handle bytes/header objects)
+            try:
+                if isinstance(req_line, bytes):
+                    req_line = self._helpers.bytesToString(req_line)
+                else:
+                    req_line = str(req_line)
+            except:
+                req_line = str(req_line)
+            req_line = req_line.strip()
+
+            # split robustly: method, path, [version]
+            parts = req_line.split(None, 2)
+            if len(parts) < 2:
+                JOptionPane.showMessageDialog(None, "Couldn't parse request line: %s" % req_line)
                 return
-            method = m.group(1).upper()
-            path = m.group(2)
+            method = parts[0].upper()
+            path = parts[1]
+
+            # handle absolute-form request-line (proxy requests) -> extract path only
+            if path.lower().startswith("http://") or path.lower().startswith("https://"):
+                m2 = re.match(r'https?://[^/]+(:\d+)?(/.*)', path, re.I)
+                if m2:
+                    path = m2.group(2)
+                else:
+                    path = "/"
+
+            # ignore methods that don't map to ffuf target URLs
+            if method == "CONNECT" or path == "*":
+                JOptionPane.showMessageDialog(None, "Can't convert CONNECT/* pseudo-requests to ffuf.")
+                return
 
             # always append FUZZ at the end of path (user asked not to worry about fuzz placement)
             if path.endswith("/"):
                 target_url = base + path + "FUZZ"
             else:
-                target_url = base + path + "/FUZZ"
+                # avoid creating double slashes if path already starts with '/'
+                if path.startswith("/"):
+                    target_url = base + path + "/FUZZ"
+                else:
+                    target_url = base + "/" + path + "/FUZZ"
 
             # build ffuf parts
             parts = ["ffuf"]
